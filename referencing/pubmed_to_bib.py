@@ -2,23 +2,27 @@ import requests
 import xml.etree.ElementTree as ET
 import sys
 import calendar
-​
+
 # Parse PubMed IDs from the command line.
 # To get this to work, download the PMID numbers from your bibliography in pubmed, and 
 # then pass the file to this code, and send the result to a .bib file.
-​
+
 # Usage:
 # python3 pubmed_to_bib.py PMID-export-example.txt > PMID-export-bibtex-example.bib
-​
-pmid_file = sys.argv[1]
-with open(pmid_file) as f:
-    pmids = [line.rstrip('\n') for line in f]
-​
+
+pmids = []
+with open(sys.argv[1]) as infile:
+    for line in infile:
+        for pmid in line.strip("\n").split(","):
+            if pmid != "":
+                pmid_fix = pmid.strip().replace('"','')
+                pmids.append(pmid_fix)
+
 ## Fetch XML data from Entrez.
 efetch = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi'
 r = requests.get(
     '{}?db=pubmed&id={}&rettype=abstract'.format(efetch, ','.join(pmids)))
-​
+
 ## Loop over the PubMed IDs and parse the XML.
 root = ET.fromstring(r.text)
 for PubmedArticle in root.iter('PubmedArticle'):
